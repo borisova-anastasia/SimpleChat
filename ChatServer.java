@@ -3,7 +3,8 @@ import java.util.*;
 import java.net.*;
 import static java.lang.System.out;
 public class  ChatServer {
-  Vector<String> users = new Vector<String>();
+  //Vector<String> users = new Vector<String>();
+  Map<String,String> users = new HashMap<String,String>();
   Vector<HandleClient> clients = new Vector<HandleClient>();
   public void process() throws Exception  {
       ServerSocket server = new ServerSocket(9999,10);
@@ -29,7 +30,8 @@ public class  ChatServer {
 	 input = new BufferedReader( new InputStreamReader( client.getInputStream())) ;
 	 output = new PrintWriter ( client.getOutputStream(),true);
 	 name  = input.readLine();
-	 users.add(name); 
+	 String phone = input.readLine();
+	 users.put(name, phone); 
 	 start();
         }
         public void sendmessage(String uname,String  msg)  {

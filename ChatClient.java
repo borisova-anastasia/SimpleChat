@@ -1,10 +1,12 @@
 import java.io.*;
-import java.util.*;
 import java.net.*;
 import javax.swing.*;
+import java.lang.Math;
+
 import java.awt.*;
 import java.awt.event.*;
 import static java.lang.System.out;
+import java.util.Random; 
 public class  ChatClient extends JFrame implements ActionListener {
     String uname;
     PrintWriter pw;
@@ -15,13 +17,22 @@ public class  ChatClient extends JFrame implements ActionListener {
     Socket client;
     String st;
     
-    public ChatClient(String uname,String servername) throws Exception {
+    private static final int MAX_VERIFICATION_CODE = 100000;
+    private static final int MIN_VERIFICATION_CODE = 999999;
+    public static final String ACCOUNT_SID =
+            "AC9b02d76d09a255617ce1cfaa9f93aff0";
+    public static final String AUTH_TOKEN =
+            "ea16d77dc7a7fb4711acf264a55afec3";
+
+    
+    public ChatClient(String uname,String phone, String servername) throws Exception {
         super(uname);  //title
         this.uname = uname;
         client  = new Socket(servername,9999);
         br = new BufferedReader( new InputStreamReader( client.getInputStream()) ) ;
         pw = new PrintWriter(client.getOutputStream(),true);
-        pw.println(uname);  
+        pw.println(uname);
+        pw.println(phone);
         buildInterface();
         new MessagesThread().start(); 
     } 
@@ -62,11 +73,21 @@ public class  ChatClient extends JFrame implements ActionListener {
     
         String name = JOptionPane.showInputDialog(null,"Enter your name :", "Username",
              JOptionPane.PLAIN_MESSAGE);
-        String servername = "localhost";  
-        try {
-            new ChatClient( name ,servername);
-        } catch(Exception ex) {
-            out.println( "Error --> " + ex.getMessage());
+        String phone = JOptionPane.showInputDialog(null,"Enter your phone number (+79XXXXXXXXX) :", "Phone number",
+                JOptionPane.PLAIN_MESSAGE);
+        String code = SendMessage(phone);
+        String userCode = JOptionPane.showInputDialog(null,"Enter your verification code :", "Verification code",
+                JOptionPane.PLAIN_MESSAGE);
+        if (code.equals(userCode))
+        {
+        	String servername = "localhost";  
+        	try {
+        		new ChatClient( name, phone, servername);
+        	} catch(Exception ex) {
+        		out.println( "Error --> " + ex.getMessage());
+        	}
+        }else {
+        	JOptionPane.showMessageDialog(null, "Wrong Verification code! "+code +" "+userCode);
         }
         
     } 
@@ -82,4 +103,19 @@ public class  ChatClient extends JFrame implements ActionListener {
             } catch(Exception ex) {}
         }
     }
-} 
+    static String SendMessage(String number) {
+            
+        String code = generateVerificationCode();
+        
+        SMSCSender sd= new SMSCSender("a-v-boris", "jspm562");
+        sd.sendSms(number, "Your password: "+code, 1, "", "", 0, "", "");
+        return code;
+    }
+    
+    static String generateVerificationCode() {
+        Random rand = new Random();
+        Integer code = rand.nextInt(MIN_VERIFICATION_CODE
+                - MAX_VERIFICATION_CODE + 1) + MAX_VERIFICATION_CODE;
+        return code.toString();
+    }
+}
